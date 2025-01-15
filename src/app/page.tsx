@@ -3,7 +3,7 @@
 import { Upload, Copy, Check } from 'lucide-react'
 import Image from 'next/image'
 import { useState, useCallback, useEffect, useRef } from 'react'
-import { generatePromptAction } from './actions'
+// import { generatePromptAction } from './actions'
 import { Button } from '@/components/ui/button'
 import ReactMarkdown from 'react-markdown'
 import remarkGfm from 'remark-gfm'
@@ -58,17 +58,55 @@ export default function Home() {
 
     try {
       setIsGenerating(true)
+      setGeneratedPrompt(null)
       setError(null)
-      const stream = await generatePromptAction(selectedImage, applicationType, temperature)
+      const response = await fetch('/api/gemini', {
+        method: 'POST',
+        body: JSON.stringify({ image: selectedImage, applicationType, temperature }),
+        headers: {
+          'Content-Type': 'application/json',
+        },
+      });
 
-      setGeneratedPrompt('')
+      if (!response.ok) {
+        const message = `Failed to generate prompt: ${response.status} ${response.statusText}`;
+        setError(message);
+        return;
+      }
 
-      if (stream) {
-        for await (const chunk of stream) {
-          const content = chunk.choices[0]?.delta?.content || ''
-          setGeneratedPrompt(prev => prev + content)
+      const reader = response.body?.getReader();
+      if (!reader) {
+        setError("Failed to get reader from response body");
+        return;
+      }
+
+      const textDecoder = new TextDecoder();
+      let accumulatedResponse = "";
+
+      while (true) {
+        const { done, value } = await reader.read();
+
+        if (done) {
+          break;
+        }
+
+        if (value) {
+          const textChunk = textDecoder.decode(value);
+          // 假设每个 chunk 都是一个完整的 JSON 对象
+          try {
+            const jsonChunk = JSON.parse(textChunk);
+            // 根据你的 API 响应结构，提取需要的内容
+            const content = jsonChunk.content || ''; // 假设 JSON 中有一个 'content' 字段
+            accumulatedResponse += content;
+            setGeneratedPrompt(accumulatedResponse);
+          } catch (error) {
+            console.error("Failed to parse JSON chunk:", textChunk, error);
+            setError("Failed to process the response from the server.");
+            break;
+          }
         }
       }
+
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Failed to generate prompt')
     } finally {

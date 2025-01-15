@@ -1,4 +1,4 @@
-import OpenAI from 'openai'
+// import OpenAI from 'openai'
 import fs from 'fs/promises';
 
 const RESPONSE_PREFIX = `Create detailed components with these requirements:
@@ -299,13 +299,23 @@ async function encodeImage(imagePath) {
   }
 }
 
-const openai = new OpenAI({
+// const openai = new OpenAI({
+//   apiKey: process.env.GEMINI_API_KEY,
+//   baseURL: 'https://openrouter.ai/api/v1',
+// })
+const GEMINI_MODEL_ID = 'gemini-1.5-flash-latest'
+const gemini_config = {
   apiKey: process.env.GEMINI_API_KEY,
-  baseURL: 'https://openrouter.ai/api/v1',
-})
+  baseURL: `https://generativelanguage.googleapis.com/v1beta/models/${process.env.GEMINI_MODEL_ID}:streamGenerateContent`,
+  // streamGenerateContent 流式响应
+  // generateContent 非流式响应
+}
 
-export async function generatePrompt(imagePath, applicationType, temperature = 0.2) {
-  const base64Image = await encodeImage(imagePath);
+
+
+
+export async function generatePrompt(base64Image, applicationType, temperature = 0.2) {
+  // const base64Image = await encodeImage(imagePath);
   const messages = [
     {
       "role": "system",
@@ -327,14 +337,50 @@ export async function generatePrompt(imagePath, applicationType, temperature = 0
       ],
     }
   ];
-  try {
-    const stream = await openai.chat.completions.create({
-      model: "google/gemini-2.0-flash-thinking-exp:free",
-      messages: messages,
-      temperature: temperature,
-      stream: true,
-    });
+  const messages_json = {
+    "contents": [
+      {
+        "parts": [
+          {
+            "text": `please generate a prompt for a frontend developer to implement an ${applicationType} application based on the image.`,
+          },
+          {
+            "inline_data": {
+              "mime_type": "image/jpeg",
+              "data": `${base64Image}`
+            }
+          }
+        ]
+      }
+    ],
+  }
+  // const controller = new AbortController();
+  const fetchOptions = {
+    headers: {
+      "Content-Type": "application/json",
+      "Cache-Control": "no-store",
+      "x-goog-api-key": gemini_config.apiKey,
+    },
+    method: "POST",
+    body: JSON.stringify({
+      "contents": [
+        {
+          "parts": [
+            {
+              "text": `please generate a prompt for a frontend developer to implement an ${applicationType} application based on the image.`,
+            },
+          ]
+        }
+      ]
+    }),
+    redirect: "manual",
+    // @ts-ignore
+    duplex: "half",
+    // signal: controller.signal,
+  };
 
+  try {
+    const stream = await fetch(gemini_config.baseURL, fetchOptions);
     return stream;
   } catch (error) {
     console.error("Error calling Gemini API:", error);
