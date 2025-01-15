@@ -4,6 +4,8 @@ import { Upload, Copy, Check } from 'lucide-react'
 import Image from 'next/image'
 import { useState, useCallback, useEffect, useRef } from 'react'
 // import { generatePromptAction } from './actions'
+
+import { generatePrompt } from "@/lib/gemini";
 import { Button } from '@/components/ui/button'
 import ReactMarkdown from 'react-markdown'
 import remarkGfm from 'remark-gfm'
@@ -47,7 +49,11 @@ export default function Home() {
     if (file && file.type.startsWith('image/')) {
       const reader = new FileReader()
       reader.onload = (e) => {
-        setSelectedImage(e.target?.result as string)
+        const dataURL = e.target?.result as string
+        // 去掉前缀 "data:image/png;base64,"，只保留 Base64 数据部分
+        const base64Data = dataURL.split(',')[1]
+        console.log('333333333333', base64Data)
+        setSelectedImage(base64Data)
       }
       reader.readAsDataURL(file)
     }
@@ -58,54 +64,62 @@ export default function Home() {
 
     try {
       setIsGenerating(true)
-      setGeneratedPrompt(null)
+      setGeneratedPrompt("")
       setError(null)
-      const response = await fetch('/api/gemini', {
+      // generatePrompt(selectedImage, applicationType, temperature).then(async result => {
+      //   const data = await result.json();
+      //
+      //   console.log(data)
+      // })
+      fetch('/api/gemini', {
         method: 'POST',
         body: JSON.stringify({ image: selectedImage, applicationType, temperature }),
         headers: {
           'Content-Type': 'application/json',
         },
+      }).then(async (response) => {
+        // const reader = await response.json();
+        // console.log('----------', reader)
+        const reader = response.body?.getReader();
+        const decoder = new TextDecoder('utf-8');
+        if (!reader) return;
+        while (true) {
+          const {done, value} = await reader.read();
+          if (done) return;
+          const data = decoder.decode(value) // 利用解码器把数据解析成字符串
+          const dataStartIndex = data.indexOf("data: "); // 查找 'data: ' 开头的数据块
+          const jsonStartIndex = dataStartIndex + 6; // 跳过 'data: '
+
+          let startThought = false;
+          let endThought = true;
+          JSON.parse(data.slice(
+              jsonStartIndex,
+              data.length
+          ))?.candidates?.at(0)?.content.parts?.map((part: {text: string, thought?: boolean})=> {
+
+            let returnMessage = part.text;
+            if (part?.thought) {
+              if (!startThought) {
+                startThought = true;
+                endThought = false;
+                returnMessage = `> ${returnMessage}`;
+              }
+              returnMessage = returnMessage.replace(/\n\n+/g, "\n> ");
+            }
+            if (!part.thought) {
+              if (startThought && !endThought) {
+                startThought = false;
+                endThought = true;
+                returnMessage = `\n\n${returnMessage}`;
+              }
+            }
+
+            setGeneratedPrompt(prev => prev + returnMessage)
+            // console.log('------', part.text)
+          })
+        }
       });
 
-      if (!response.ok) {
-        const message = `Failed to generate prompt: ${response.status} ${response.statusText}`;
-        setError(message);
-        return;
-      }
-
-      const reader = response.body?.getReader();
-      if (!reader) {
-        setError("Failed to get reader from response body");
-        return;
-      }
-
-      const textDecoder = new TextDecoder();
-      let accumulatedResponse = "";
-
-      while (true) {
-        const { done, value } = await reader.read();
-
-        if (done) {
-          break;
-        }
-
-        if (value) {
-          const textChunk = textDecoder.decode(value);
-          // 假设每个 chunk 都是一个完整的 JSON 对象
-          try {
-            const jsonChunk = JSON.parse(textChunk);
-            // 根据你的 API 响应结构，提取需要的内容
-            const content = jsonChunk.content || ''; // 假设 JSON 中有一个 'content' 字段
-            accumulatedResponse += content;
-            setGeneratedPrompt(accumulatedResponse);
-          } catch (error) {
-            console.error("Failed to parse JSON chunk:", textChunk, error);
-            setError("Failed to process the response from the server.");
-            break;
-          }
-        }
-      }
 
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Failed to generate prompt')
@@ -119,7 +133,11 @@ export default function Home() {
     if (file) {
       const reader = new FileReader()
       reader.onload = (e) => {
-        setSelectedImage(e.target?.result as string)
+        const dataURL = e.target?.result as string
+        // 去掉前缀 "data:image/png;base64,"，只保留 Base64 数据部分
+        const base64Data = dataURL.split(',')[1]
+        console.log('333333333333', base64Data)
+        setSelectedImage(base64Data)
       }
       reader.readAsDataURL(file)
     }

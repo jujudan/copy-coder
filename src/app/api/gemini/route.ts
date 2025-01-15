@@ -1,15 +1,16 @@
-import { NextRequest, NextResponse } from "next/server";
+import { NextRequest } from "next/server";
 import { generatePrompt } from '@/lib/gemini'
-import { log } from "console";
+
+export const maxDuration = 120
+
 
 export async function handle(
     req: NextRequest,
     { params }: { params: Promise<{ path: string[] }> },
   ) {
     const { image, applicationType, temperature } = await req.json();
-    const stream = generatePrompt(image, applicationType, temperature);
-    console.log(stream, stream.body); 
-    return stream;
+    // console.log(stream, await stream.json());
+    return generatePrompt(image, applicationType, temperature);
 }
 
 export const POST = handle;
