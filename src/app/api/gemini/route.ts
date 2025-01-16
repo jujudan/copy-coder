@@ -6,7 +6,6 @@ export const maxDuration = 120
 
 export async function handle(
     req: NextRequest,
-    { params }: { params: Promise<{ path: string[] }> },
   ) {
     const { image, applicationType, temperature } = await req.json();
     // console.log(stream, await stream.json());

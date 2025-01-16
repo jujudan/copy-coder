@@ -5,7 +5,6 @@ import Image from 'next/image'
 import { useState, useCallback, useEffect, useRef } from 'react'
 // import { generatePromptAction } from './actions'
 
-import { generatePrompt } from "@/lib/gemini";
 import { Button } from '@/components/ui/button'
 import ReactMarkdown from 'react-markdown'
 import remarkGfm from 'remark-gfm'

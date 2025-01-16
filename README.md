@@ -123,20 +123,3 @@ You can also deploy the application manually to any platform that supports Next.
 1. Set up the required environment variables
 2. Configure the build settings according to your platform
 3. Set up any necessary serverless functions support
-
-
-## Follow My WeChat Official Account
-
-Stay updated with the latest AI development tips and tools:
-
-<div align="center">
-  <img src="./public/wechat-qr.jpg" alt="WeChat Official Account QR Code" width="200"/>
-  <p><strong>WeChat Official Account: LaoMa XiaoZhang</strong></p>
-  <p>Scan the QR code to follow and get the latest updates on:</p>
-  <ul align="left">
-    <li>🤖 AI Programming Tips & Tricks</li>
-    <li>💻 Full-Stack Development Insights</li>
-    <li>🛠️ Productivity Tools and Workflows</li>
-    <li>🚀 Latest Tech Trends and Reviews</li>
-  </ul>
-</div>
