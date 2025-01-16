@@ -3,7 +3,9 @@
 import { Upload, Copy, Check } from 'lucide-react'
 import Image from 'next/image'
 import { useState, useCallback, useEffect, useRef } from 'react'
-import { generatePromptAction } from './actions'
+// import { generatePromptAction } from './actions'
+
+import { generatePrompt } from "@/lib/gemini";
 import { Button } from '@/components/ui/button'
 import ReactMarkdown from 'react-markdown'
 import remarkGfm from 'remark-gfm'
@@ -58,17 +60,64 @@ export default function Home() {
 
     try {
       setIsGenerating(true)
+      setGeneratedPrompt("")
       setError(null)
-      const stream = await generatePromptAction(selectedImage, applicationType, temperature)
-
-      setGeneratedPrompt('')
-
-      if (stream) {
-        for await (const chunk of stream) {
-          const content = chunk.choices[0]?.delta?.content || ''
-          setGeneratedPrompt(prev => prev + content)
-        }
+      // 去掉前缀 "data:image/png;base64,"，只保留 Base64 数据部分
+      const image = selectedImage?.split(',')[1]
+      const response = await fetch('/api/gemini', {
+        method: 'POST',
+        body: JSON.stringify({ image, applicationType, temperature }),
+        headers: {
+          'Content-Type': 'application/json',
+        },
+      })
+    
+      if (!response.ok) {
+        const j = await response.json()
+        console.log('response', j)
+        return setError(`Failed to generate prompt: ${j.error.message}` )
       }
+      const reader = response.body?.getReader();
+      const decoder = new TextDecoder('utf-8');
+      if (!reader) return;
+      while (true) {
+        const {done, value} = await reader.read();
+        if (done) {
+          setIsGenerating(false)
+          return
+        };
+        const data = decoder.decode(value) // 利用解码器把数据解析成字符串
+        const dataStartIndex = data.indexOf("data: "); // 查找 'data: ' 开头的数据块
+        const jsonStartIndex = dataStartIndex + 6; // 跳过 'data: '
+
+        let startThought = false;
+        let endThought = true;
+        JSON.parse(data.slice(
+            jsonStartIndex,
+            data.length
+        ))?.candidates?.at(0)?.content.parts?.map((part: {text: string, thought?: boolean})=> {
+
+          let returnMessage = part.text;
+          if (part?.thought) {
+            if (!startThought) {
+              startThought = true;
+              endThought = false;
+              returnMessage = `> ${returnMessage}`;
+            }
+            returnMessage = returnMessage.replace(/\n+/g, "\n> ");
+            returnMessage = returnMessage.replace(/\n\n+/g, "\n");
+          }
+          if (!part.thought) {
+            if (startThought && !endThought) {
+              startThought = false;
+              endThought = true;
+              returnMessage = `\n\n${returnMessage}`;
+            }
+          }
+          setGeneratedPrompt(prev => prev + returnMessage)
+        })
+      }
+
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Failed to generate prompt')
     } finally {

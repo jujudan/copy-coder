@@ -1,5 +1,6 @@
-import OpenAI from 'openai'
-import fs from 'fs/promises';
+'use server'
+// import OpenAI from 'openai'
+// import fs from 'fs/promises';
 
 const RESPONSE_PREFIX = `Create detailed components with these requirements:
 1. Use 'use client' directive for client-side components
@@ -289,53 +290,84 @@ Responsive Design Adjustments:
 </development_planning>
 `
 
-async function encodeImage(imagePath) {
-  try {
-    const imageBuffer = await fs.readFile(imagePath);
-    return imageBuffer.toString('base64');
-  } catch (error) {
-    console.error("Error encoding image:", error);
-    return null;
-  }
+// async function encodeImage(imagePath) {
+//   try {
+//     const imageBuffer = await fs.readFile(imagePath);
+//     return imageBuffer.toString('base64');
+//   } catch (error) {
+//     console.error("Error encoding image:", error);
+//     return null;
+//   }
+// }
+
+// const openai = new OpenAI({
+//   apiKey: process.env.GEMINI_API_KEY,
+//   baseURL: 'https://openrouter.ai/api/v1',
+// })
+const GEMINI_MODEL_ID = process.env.GEMINI_MODEL_ID || 'gemini-2.0-flash-thinking-exp'
+const gemini_config = {
+  apiKey: process.env.GEMINI_API_KEY,
+  baseURL: `https://generativelanguage.googleapis.com/v1alpha/models/${GEMINI_MODEL_ID}:streamGenerateContent?alt=sse`,
+  // streamGenerateContent 流式响应
+  // generateContent 非流式响应
 }
 
-const openai = new OpenAI({
-  apiKey: process.env.GEMINI_API_KEY,
-  baseURL: 'https://openrouter.ai/api/v1',
-})
 
-export async function generatePrompt(imagePath, applicationType, temperature = 0.2) {
-  const base64Image = await encodeImage(imagePath);
-  const messages = [
-    {
-      "role": "system",
-      "content": SYSTEM_PROMPT
-    },
-    {
-      "role": "user",
-      "content": [
+export async function generatePrompt(base64Image, applicationType, temperature = 0.2) {
+  // const img = base64Image?.split(',')[1]
+  const img = base64Image;
+  const messages = {
+      "contents": [
         {
-          "type": "text",
-          "text": `please generate a prompt for a frontend developer to implement an ${applicationType} application based on the image.`,
+          "role": "model",
+          "parts": [
+            {
+              "text": SYSTEM_PROMPT
+            }
+          ]
         },
         {
-          "type": "image_url",
-          "image_url": {
-            "url": `data:image/jpeg;base64,${base64Image}`
-          },
-        },
+          "role": "user",
+          "parts": [
+            {
+              "text": `please generate a prompt for a frontend developer to implement an ${applicationType} application based on the image.`,
+            },
+            {
+              "inline_data": {
+                "mime_type": "image/jpeg",
+                "data": `${img}`
+              }
+            },
+          ]
+        }
       ],
-    }
-  ];
-  try {
-    const stream = await openai.chat.completions.create({
-      model: "google/gemini-2.0-flash-thinking-exp:free",
-      messages: messages,
-      temperature: temperature,
-      stream: true,
-    });
+      generationConfig: {
+        temperature: temperature,
+      }
+    };
 
-    return stream;
+  const fetchOptions = {
+    headers: {
+      "Content-Type": "application/json",
+      "Cache-Control": "no-store",
+      "Accept": "application/json, text/event-stream",
+      "x-goog-api-key": gemini_config.apiKey,
+    },
+    method: "POST",
+    body: JSON.stringify(messages),
+    redirect: "manual",
+    duplex: "half",
+    // signal: controller.signal,
+  };
+
+  try {
+    const res = await fetch(gemini_config.baseURL, fetchOptions);
+    return new Response(res.body, {
+      status: res.status,
+      statusText: res.statusText,
+      headers: res.headers,
+    });
+    // return res;
   } catch (error) {
     console.error("Error calling Gemini API:", error);
     throw error;
