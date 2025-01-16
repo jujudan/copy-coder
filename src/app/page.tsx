@@ -159,11 +159,11 @@ export default function Home() {
       {/* Hero Section */}
       <div className="mb-12">
         <h1 className="text-5xl font-bold mb-6">
-          Create powerful prompts for Cursor, Bolt, v0 & more..
+          UI 提示词生成器
         </h1>
-        <p className="text-xl text-gray-600 mb-8">
-          Built for the next generation of AI coders. Upload images of full applications, UI mockups, or custom designs and use our generated prompts to build your apps faster.
-        </p>
+        <h1 className="text-xl text-gray-600 mb-8">
+        使用图片为 AI 编码器创建强大的提示词
+        </h1>
       </div>
 
       {/* Main Content Grid */}
@@ -183,17 +183,16 @@ export default function Home() {
                   <div className="flex flex-col items-center">
                     <Upload className="h-12 w-12 text-gray-400 mb-4" />
                     <p className="text-sm text-gray-600 mb-2">
-                      Drag & drop images of websites, Figma designs,
+                      拖拽图片到这里，或点击选择图片
                     </p>
-                    <p className="text-sm text-gray-600 mb-4">
-                      or UI mockups here
+                    <p className="text-gray-400 text-sm mt-2">
+                      支持格式：JPG、PNG
                     </p>
-                    <p className="text-sm text-gray-400">or</p>
                     <Button
                       variant="outline"
                       className="mt-4"
                     >
-                      Choose image
+                      选择图片
                     </Button>
                   </div>
                   <input
@@ -204,7 +203,7 @@ export default function Home() {
                     onChange={handleFileChange}
                   />
                   <p className="mt-4 text-xs text-gray-400">
-                    Note: Only one image can be uploaded at a time.
+                    注意：一次只能上传一张图片。
                   </p>
                 </div>
               ) : (
@@ -218,7 +217,7 @@ export default function Home() {
                         <path d="M18 6 6 18" />
                         <path d="m6 6 12 12" />
                       </svg>
-                      Remove Image
+                      移除图片
                     </button>
                   </div>
                   <div className="relative w-full aspect-video">
@@ -281,25 +280,25 @@ export default function Home() {
         {/* Info Section */}
         <div className="bg-white p-8 rounded-xl border border-gray-200">
           <div className="mt-8">
-            <h3 className="text-lg font-semibold mb-4">Choose analysis focus:</h3>
+            <h3 className="text-lg font-semibold mb-4">选择设计类型</h3>
             <select
               className="w-full p-2 border border-gray-300 rounded-lg"
               value={applicationType}
               onChange={(e) => setApplicationType(e.target.value)}
             >
-              <option value="web">Web applications</option>
-              <option value="mobile">Mobile applications</option>
-              <option value="desktop">Desktop applications</option>
+              <option value="web">网页应用</option>
+              <option value="mobile">移动端应用</option>
+              <option value="desktop">桌面端应用</option>
             </select>
           </div>
 
           <div className="mt-8">
             <div className="flex items-center justify-between mb-2">
-              <h3 className="text-lg font-semibold">Temperature:</h3>
+              <h3 className="text-lg font-semibold">温度:</h3>
               <span className="text-sm text-gray-500">{temperature}</span>
             </div>
             <div className="flex items-center gap-2">
-              <span className="text-sm text-gray-500">Precise</span>
+              <span className="text-sm text-gray-500">精确性</span>
               <input
                 type="range"
                 min="0"
@@ -309,10 +308,10 @@ export default function Home() {
                 onChange={(e) => setTemperature(parseFloat(e.target.value))}
                 className="flex-1 h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer [&::-webkit-slider-thumb]:appearance-none [&::-webkit-slider-thumb]:w-4 [&::-webkit-slider-thumb]:h-4 [&::-webkit-slider-thumb]:bg-blue-600 [&::-webkit-slider-thumb]:rounded-full hover:[&::-webkit-slider-thumb]:bg-blue-700"
               />
-              <span className="text-sm text-gray-500">Creative</span>
+              <span className="text-sm text-gray-500">创造性</span>
             </div>
             <p className="mt-2 text-xs text-gray-500">
-              Adjust temperature to control the creativity level of the generated prompts. Lower values produce more focused results, while higher values increase creativity and variability.
+            调整温度以控制生成提示的创造性水平。较低的值会产生更集中的结果，而较高的值会增加创造性和可变性。
             </p>
           </div>
 
@@ -321,7 +320,7 @@ export default function Home() {
             onClick={handleGeneratePrompt}
             disabled={!selectedImage || isGenerating}
           >
-            {isGenerating ? 'Generating...' : 'Generate prompt'}
+            {isGenerating ? '生成中……' : '生成提示词'}
           </Button>
 
           {error && (
@@ -333,7 +332,7 @@ export default function Home() {
           {generatedPrompt && (
             <div className="mt-8 bg-gray-50 rounded-lg">
               <div className="flex items-center justify-between p-4 border-b border-gray-200">
-                <h4 className="font-semibold">Generated Prompt:</h4>
+                <h4 className="font-semibold">生成的提示词:</h4>
                 <Button
                   variant="ghost"
                   size="sm"
@@ -343,12 +342,12 @@ export default function Home() {
                   {isCopied ? (
                     <>
                       <Check className="w-4 h-4 text-green-500" />
-                      <span className="text-green-500">Copied!</span>
+                      <span className="text-green-500">已复制！</span>
                     </>
                   ) : (
                     <>
                       <Copy className="w-4 h-4" />
-                      <span>Copy</span>
+                      <span>复制</span>
                     </>
                   )}
                 </Button>

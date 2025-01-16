@@ -24,7 +24,7 @@ export default function RootLayout({
           {/* Top Header */}
           <header className="fixed top-0 left-0 right-0 h-16 bg-white border-b border-gray-200 z-50">
             <div className="flex items-center justify-between h-full px-4">
-              <Link href="/" className="text-2xl font-bold">Super Copy Coder</Link>
+              <Link href="/" className="text-2xl font-bold">提示词生成器</Link>
               <div className="flex items-center space-x-4">
                 <button className="p-2 hover:bg-gray-100 rounded-lg">
                   <Search className="w-5 h-5" />
@@ -45,7 +45,7 @@ export default function RootLayout({
             <div className="container mx-auto py-8 px-6">
               <div className="grid md:grid-cols-2 gap-8 items-center">
                 {/* Left side - WeChat Official Account */}
-                <div className="text-center md:text-left">
+                {/* <div className="text-center md:text-left">
                   <h3 className="text-lg font-semibold mb-4">Follow My WeChat Official Account</h3>
                   <div className="flex flex-col items-center md:items-start">
                     <div className="text-xl font-bold text-gray-800 mb-2">LaoMa XiaoZhang</div>
@@ -60,10 +60,10 @@ export default function RootLayout({
                       className="rounded-lg shadow-md"
                     />
                   </div>
-                </div>
+                </div> */}
 
                 {/* Right side - Appreciation */}
-                <div className="text-center md:text-left">
+                {/* <div className="text-center md:text-left">
                   <h3 className="text-lg font-semibold mb-4">Support My Work</h3>
                   <div className="text-xl font-bold text-gray-800 mb-2">LaoMa XiaoZhang</div>
                   <p className="text-gray-600 mb-4">
@@ -76,7 +76,7 @@ export default function RootLayout({
                     height={200}
                     className="rounded-lg shadow-md mx-auto md:mx-0"
                   />
-                </div>
+                </div> */}
               </div>
 
               <div className="text-center mt-8 text-gray-500 text-sm">

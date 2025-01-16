@@ -304,7 +304,7 @@ Responsive Design Adjustments:
 //   apiKey: process.env.GEMINI_API_KEY,
 //   baseURL: 'https://openrouter.ai/api/v1',
 // })
-const GEMINI_MODEL_ID = process.env.GEMINI_MODEL_ID || 'gemini-2.0-flash-thinking-exp'
+const GEMINI_MODEL_ID = process.env.GEMINI_MODEL_ID || 'gemini-2.0-flash-exp'
 const gemini_config = {
   apiKey: process.env.GEMINI_API_KEY,
   baseURL: `https://generativelanguage.googleapis.com/v1alpha/models/${GEMINI_MODEL_ID}:streamGenerateContent?alt=sse`,
