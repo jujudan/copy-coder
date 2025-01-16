@@ -1,3 +1,4 @@
+'use server'
 // import OpenAI from 'openai'
 // import fs from 'fs/promises';
 
@@ -303,58 +304,48 @@ Responsive Design Adjustments:
 //   apiKey: process.env.GEMINI_API_KEY,
 //   baseURL: 'https://openrouter.ai/api/v1',
 // })
-// const GEMINI_MODEL_ID = 'gemini-2.0-flash-thinking-exp'
+const GEMINI_MODEL_ID = process.env.GEMINI_MODEL_ID || 'gemini-2.0-flash-thinking-exp'
 const gemini_config = {
-  apiKey: process.env.NEXT_PUBLIC_GEMINI_API_KEY,
-  baseURL: `https://generativelanguage.googleapis.com/v1alpha/models/${process.env.NEXT_PUBLIC_GEMINI_MODEL_ID}:streamGenerateContent?alt=sse`,
+  apiKey: process.env.GEMINI_API_KEY,
+  baseURL: `https://generativelanguage.googleapis.com/v1alpha/models/${GEMINI_MODEL_ID}:streamGenerateContent?alt=sse`,
   // streamGenerateContent 流式响应
   // generateContent 非流式响应
 }
 
 
-
-
 export async function generatePrompt(base64Image, applicationType, temperature = 0.2) {
-  // const base64Image = await encodeImage(imagePath);
-  const messages = [
-    {
-      "role": "system",
-      "content": SYSTEM_PROMPT
-    },
-    {
-      "role": "user",
-      "content": [
+  // const img = base64Image?.split(',')[1]
+  const img = base64Image;
+  const messages = {
+      "contents": [
         {
-          "type": "text",
-          "text": `please generate a prompt for a frontend developer to implement an ${applicationType} application based on the image.`,
-        },
-        {
-          "type": "image_url",
-          "image_url": {
-            "url": `data:image/jpeg;base64,${base64Image}`
-          },
-        },
-      ],
-    }
-  ];
-  const messages_json = {
-    "contents": [
-      {
-        "parts": [
-          {
-            "text": `please generate a prompt for a frontend developer to implement an ${applicationType} application based on the image.`,
-          },
-          {
-            "inline_data": {
-              "mime_type": "image/jpeg",
-              "data": `${base64Image}`
+          "role": "model",
+          "parts": [
+            {
+              "text": SYSTEM_PROMPT
             }
-          }
-        ]
+          ]
+        },
+        {
+          "role": "user",
+          "parts": [
+            {
+              "text": `please generate a prompt for a frontend developer to implement an ${applicationType} application based on the image.`,
+            },
+            {
+              "inline_data": {
+                "mime_type": "image/jpeg",
+                "data": `${img}`
+              }
+            },
+          ]
+        }
+      ],
+      generationConfig: {
+        temperature: temperature,
       }
-    ],
-  }
-  console.log('messages_json', messages_json)
+    };
+
   const fetchOptions = {
     headers: {
       "Content-Type": "application/json",
@@ -363,7 +354,7 @@ export async function generatePrompt(base64Image, applicationType, temperature =
       "x-goog-api-key": gemini_config.apiKey,
     },
     method: "POST",
-    body: JSON.stringify(messages_json),
+    body: JSON.stringify(messages),
     redirect: "manual",
     duplex: "half",
     // signal: controller.signal,
